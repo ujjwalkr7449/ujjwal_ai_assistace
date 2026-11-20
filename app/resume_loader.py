@@ -7,7 +7,13 @@ from app.resume_config import (
     SYSTEM_PROMPT,
     RESUME_FILE_PATH,
     RESUME_TEXT,
+    PROFILE_LINKS,
 )
+
+
+def append_profile_links(text: str) -> str:
+    links = "\n".join(f"{name}: {url}" for name, url in PROFILE_LINKS.items())
+    return f"{text.rstrip()}\n\nPROFILE LINKS:\n{links}"
 
 
 def load_resume_from_pdf(pdf_path: Path) -> str:
@@ -46,7 +52,7 @@ def get_resume_data() -> dict:
     """
     # 1. Direct text in code
     if RESUME_TEXT and RESUME_TEXT.strip():
-        text = RESUME_TEXT.strip()
+        text = append_profile_links(RESUME_TEXT.strip())
         return {
             "text": text,
             "source": "Configured in app/resume_config.py (RESUME_TEXT)",
@@ -68,6 +74,7 @@ def get_resume_data() -> dict:
             text = load_resume_from_pdf(file_path)
         else:
             text = load_resume_from_txt(file_path)
+        text = append_profile_links(text)
 
         return {
             "text": text,
@@ -85,6 +92,7 @@ def get_resume_data() -> dict:
                     text = load_resume_from_pdf(candidate)
                 else:
                     text = load_resume_from_txt(candidate)
+                text = append_profile_links(text)
                 return {
                     "text": text,
                     "source": f"Found in data/: {candidate.name}",

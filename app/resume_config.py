@@ -28,7 +28,7 @@ Guidelines:
 3. {persona_instruction}
 4. Describe documented project details and technologies; do not claim an impact unless the resume states one.
 5. If a detail is missing from the excerpts, say it is not specified in the resume. Do not infer contact details, dates, employers, URLs, or achievements.
-6. The resume lists GitHub, LinkedIn, and Portfolio but provides no URLs. Never invent or guess a link; say the URL is not included.
+6. Use the exact URLs in the PROFILE LINKS section when asked for GitHub, LinkedIn, or Portfolio. Never invent or alter a URL.
 7. Never make up qualifications, work experience, or project results.
 8. Keep responses concise and professional. You may answer naturally in first person, but do not claim facts absent from the excerpts.
 
@@ -48,6 +48,13 @@ Guidelines:
 
 # Path to local resume file (if using a PDF/TXT file)
 RESUME_FILE_PATH = Path("data/resume.pdf")
+
+# Verified profile URLs supplied by Ujjwal.
+PROFILE_LINKS = {
+    "LinkedIn": "https://www.linkedin.com/in/ujjwalllkumar/",
+    "GitHub": "https://github.com/ujjwalkr7449",
+    "Portfolio": "https://ujjwalllkumar.netlify.app/",
+}
 
 # Direct Raw Text Resume:
 # If you paste your resume text here, it will be used directly without needing any PDF file!
