@@ -6,17 +6,13 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.document import extract_text
-from app.chunking import split_text
-from app.vector_store import save_vector_store
-from app.retrieval import retrieve_context
 from app.qa import answer_question, stream_answer
 
 
 app = FastAPI(title="RAG Document Chatbot")
 
-UPLOAD_DIR = Path("data/resume.pdf")
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class QuestionRequest(BaseModel):
@@ -31,6 +27,10 @@ def home():
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+    from app.chunking import split_text
+    from app.document import extract_text
+    from app.vector_store import save_vector_store
+
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(400, "Please upload a PDF")
 
@@ -72,6 +72,8 @@ async def upload_pdf(file: UploadFile = File(...)):
 
 @app.post("/ask")
 def ask_question_endpoint(request: QuestionRequest):
+    from app.retrieval import retrieve_context
+
     try:
         context, sources = retrieve_context(
             request.document_id,
@@ -102,6 +104,8 @@ def ask_question_endpoint(request: QuestionRequest):
 
 @app.post("/ask/stream")
 def ask_question_stream_endpoint(request: QuestionRequest):
+    from app.retrieval import retrieve_context
+
     try:
         context, sources = retrieve_context(
             request.document_id,

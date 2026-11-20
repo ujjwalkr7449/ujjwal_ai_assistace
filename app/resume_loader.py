@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 import pymupdf
 
@@ -56,7 +55,13 @@ def get_resume_data() -> dict:
         }
 
     # 2. Configured file path
-    file_path = Path(RESUME_FILE_PATH)
+    project_root = Path(__file__).resolve().parent.parent
+    configured_path = Path(RESUME_FILE_PATH)
+    file_path = configured_path if configured_path.is_absolute() else project_root / configured_path
+    if not file_path.exists() and configured_path == Path("data/resume.pdf"):
+        app_data_path = project_root / "app" / "data" / "resume.pdf"
+        if app_data_path.exists():
+            file_path = app_data_path
     if file_path.exists() and file_path.is_file():
         suffix = file_path.suffix.lower()
         if suffix == ".pdf":
@@ -72,7 +77,7 @@ def get_resume_data() -> dict:
         }
 
     # 3. Check data/ directory for any resume file
-    data_dir = Path("data")
+    data_dir = project_root / "data"
     if data_dir.exists():
         for candidate in data_dir.glob("*"):
             if candidate.is_file() and candidate.suffix.lower() in [".pdf", ".txt", ".md"]:
@@ -87,18 +92,9 @@ def get_resume_data() -> dict:
                     "word_count": len(text.split()),
                 }
 
-    # Fallback default
-    fallback = (
-        f"Resume for {CANDIDATE_NAME}.\n"
-        "Please paste your resume text into app/resume_config.py "
-        "or place your resume.pdf into the data/ folder."
+    raise FileNotFoundError(
+        f"Resume not found. Add a PDF or TXT file at {project_root / RESUME_FILE_PATH}."
     )
-    return {
-        "text": fallback,
-        "source": "Default Placeholder",
-        "char_count": len(fallback),
-        "word_count": len(fallback.split()),
-    }
 
 
 def format_system_prompt(

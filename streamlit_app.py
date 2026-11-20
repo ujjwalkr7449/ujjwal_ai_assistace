@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -13,7 +12,8 @@ from app.resume_config import (
     SYSTEM_PROMPT,
 )
 from app.resume_loader import get_resume_data, format_system_prompt
-from app.qa import stream_resume_chat, DEFAULT_MODEL, AVAILABLE_MODELS
+from app.retrieval import retrieve_resume_context
+from app.qa import stream_resume_chat, DEFAULT_MODEL
 
 
 # -----------------------------
@@ -264,17 +264,18 @@ if user_prompt:
     with st.chat_message("user"):
         st.markdown(user_prompt)
 
-    # Format full system prompt with resume content and persona instructions
-    formatted_system_prompt = format_system_prompt(
-        candidate_name=CANDIDATE_NAME,
-        persona_mode=st.session_state.persona_mode,
-        custom_system_prompt=st.session_state.custom_prompt,
-        resume_content=resume_text,
-    )
-
     # Stream Assistant Response
     with st.chat_message("assistant"):
         try:
+            with st.spinner("Finding relevant resume details..."):
+                resume_context = retrieve_resume_context(resume_text, user_prompt)
+                formatted_system_prompt = format_system_prompt(
+                    candidate_name=CANDIDATE_NAME,
+                    persona_mode=st.session_state.persona_mode,
+                    custom_system_prompt=st.session_state.custom_prompt,
+                    resume_content=resume_context,
+                )
+
             # We exclude the message just added to avoid duplicate user turns
             history_context = st.session_state.messages[:-1]
 
@@ -283,7 +284,7 @@ if user_prompt:
                 system_prompt=formatted_system_prompt,
                 chat_history=history_context,
                 api_key=groq_api_key,
-                model="openai/gpt-oss-120b"
+                model=DEFAULT_MODEL
             )
 
             full_response = st.write_stream(token_stream)
