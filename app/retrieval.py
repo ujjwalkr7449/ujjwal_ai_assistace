@@ -64,13 +64,45 @@ def _resume_chunks(resume_text: str) -> tuple[str, ...]:
 
 def retrieve_resume_context(resume_text: str, question: str, k: int = 4) -> str:
     """Return relevant resume passages using fast, dependency-free term search."""
+    full_resume_request = re.search(
+        r"\b(entire|whole|complete|full|all)\b.{0,40}\b(resume|pdf|profile|background|details|information)\b"
+        r"|\b(summarize|summary|overview)\b.{0,30}\b(resume|profile|background)\b",
+        question,
+        re.IGNORECASE,
+    )
+    if full_resume_request:
+        return resume_text
+
+    asks_for_project_list = (
+        "project" in question.lower()
+        and re.search(
+            r"\b(how\s+many|number\s+of|list|all|what|which)\b",
+            question,
+            re.IGNORECASE,
+        )
+    )
+    if asks_for_project_list:
+        lines = resume_text.splitlines()
+        start = next(
+            (i for i, line in enumerate(lines) if re.fullmatch(r"\s*PROJECTS:?\s*", line, re.IGNORECASE)),
+            None,
+        )
+        if start is not None:
+            end = next(
+                (i for i in range(start + 1, len(lines)) if re.fullmatch(r"\s*EDUCATION:?\s*", lines[i], re.IGNORECASE)),
+                len(lines),
+            )
+            projects_section = "\n".join(lines[start:end]).strip()
+            if projects_section:
+                return projects_section
+
     query_terms = {
         term for term in re.findall(r"[a-z0-9+#.]+", question.lower())
         if len(term) > 1 and term not in _STOP_WORDS
     }
     chunks = _resume_chunks(resume_text)
     if not query_terms:
-        return "\n\n".join(chunks[:k])
+        return resume_text
 
     ranked = []
     for index, chunk in enumerate(chunks):
@@ -81,5 +113,7 @@ def retrieve_resume_context(resume_text: str, question: str, k: int = 4) -> str:
             score = len(overlap) / len(query_terms) + len(overlap) / max(len(chunk_terms), 1)
             ranked.append((score, index, chunk))
     ranked.sort(key=lambda item: (-item[0], item[1]))
+    if not ranked or ranked[0][0] < 0.55:
+        return resume_text
     selected = [item[2] for item in ranked[:k]]
-    return "\n\n".join(selected or chunks[:min(k, 2)])
+    return "\n\n".join(selected)

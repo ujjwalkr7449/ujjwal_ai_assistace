@@ -102,8 +102,16 @@ st.markdown(
       --text: {palette['text']}; --muted: {palette['muted']}; --border: {palette['border']};
       --soft: {palette['soft']}; --accent: {palette['accent']}; --accent-soft: {palette['accent_soft']};
     }}
-    .stApp, [data-testid="stAppViewContainer"] {{ background: var(--page); color: var(--text); }}
+    html, body, .stApp, [data-testid="stAppViewContainer"] {{
+      background: var(--page) !important; color: var(--text);
+    }}
     [data-testid="stHeader"] {{ background: transparent; }}
+    /* Streamlit renders the pinned chat composer in its own opaque bottom layer. */
+    [data-testid="stBottom"], [data-testid="stBottom"] > div,
+    [data-testid="stBottomBlockContainer"], [data-testid="stChatFloatingInputContainer"] {{
+      background: var(--page) !important;
+    }}
+    [data-testid="stBottom"] {{ border-top: 1px solid var(--border); }}
     [data-testid="stSidebar"] > div:first-child {{ background: var(--sidebar); border-right: 1px solid var(--border); }}
     [data-testid="stSidebar"] {{ color: var(--text); }}
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
@@ -146,8 +154,10 @@ st.markdown(
     [data-testid="stChatMessage"] {{ background:var(--surface); border:1px solid var(--border);
       border-radius:18px; padding:16px 18px; margin:10px 0; }}
     [data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li {{ color:var(--text); }}
-    [data-testid="stChatInput"] {{ border-color:var(--border); background:var(--surface); border-radius:16px; }}
-    [data-testid="stChatInput"] textarea {{ color:var(--text); }}
+    [data-testid="stChatInput"] {{ border:1px solid var(--border) !important;
+      background:var(--surface) !important; border-radius:16px; }}
+    [data-testid="stChatInput"] textarea {{ color:var(--text) !important;
+      background:var(--surface) !important; caret-color:var(--accent); }}
     [data-testid="stExpander"] {{ border-color:var(--border); border-radius:12px; }}
     [data-testid="stSidebar"] [data-testid="stExpander"] {{ background:var(--soft); }}
     [data-testid="stMarkdownContainer"] a {{ color:var(--accent); }}
